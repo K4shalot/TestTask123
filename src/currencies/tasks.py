@@ -1,8 +1,14 @@
 from celery import shared_task
 
-from .services import sync_currency_rates as sync_currency_rates_service
+from . import services
 
 
-@shared_task
+@shared_task(
+    autoretry_for=(services.RetryableSyncError,),
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+    retry_kwargs={"max_retries": 5},
+)
 def sync_currency_rates() -> int:
-    return sync_currency_rates_service()
+    return services.sync_currency_rates()

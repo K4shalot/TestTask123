@@ -149,6 +149,7 @@ pre-commit run --all-files
 
 - Celery Beat runs `currencies.tasks.sync_currency_rates` every 10 minutes.
 - Data source: `https://api.monobank.ua/bank/currency`.
+- Sync task retries automatically with backoff for temporary upstream issues (`429`, `5xx`, network errors).
 
 ## Project Structure
 

@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
 
+import requests
 from django.test import SimpleTestCase
 
-from currencies.services import _normalize_uah_pair, fetch_monobank_uah_pairs
+from currencies.services import RetryableSyncError, _normalize_uah_pair, fetch_monobank_uah_pairs
 
 
 class NormalizeUahPairTests(SimpleTestCase):
@@ -68,6 +69,7 @@ class FetchMonobankPairsTests(SimpleTestCase):
             },
         ]
         response = Mock()
+        response.status_code = 200
         response.json.return_value = payload
         response.raise_for_status.return_value = None
         mock_get.return_value = response
@@ -77,3 +79,28 @@ class FetchMonobankPairsTests(SimpleTestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual([row["code"] for row in result], [840, 978])
         mock_get.assert_called_once_with("https://api.monobank.ua/bank/currency", timeout=15)
+
+    @patch("currencies.services.requests.get")
+    def test_fetch_raises_retryable_error_on_rate_limit(self, mock_get):
+        response = Mock()
+        response.status_code = 429
+        mock_get.return_value = response
+
+        with self.assertRaises(RetryableSyncError):
+            fetch_monobank_uah_pairs()
+
+    @patch("currencies.services.requests.get")
+    def test_fetch_raises_retryable_error_on_5xx(self, mock_get):
+        response = Mock()
+        response.status_code = 500
+        mock_get.return_value = response
+
+        with self.assertRaises(RetryableSyncError):
+            fetch_monobank_uah_pairs()
+
+    @patch("currencies.services.requests.get")
+    def test_fetch_raises_retryable_error_on_network_timeout(self, mock_get):
+        mock_get.side_effect = requests.Timeout("network timeout")
+
+        with self.assertRaises(RetryableSyncError):
+            fetch_monobank_uah_pairs()

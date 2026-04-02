@@ -22,6 +22,10 @@ ISO_NUMERIC_TO_ALPHA = {
 }
 
 
+class RetryableSyncError(Exception):
+    """Raised when upstream API failures should be retried by Celery."""
+
+
 def _normalize_uah_pair(raw_row: dict[str, Any]) -> dict[str, Any] | None:
     code_a = raw_row.get("currencyCodeA")
     code_b = raw_row.get("currencyCodeB")
@@ -39,7 +43,16 @@ def _normalize_uah_pair(raw_row: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def fetch_monobank_uah_pairs(timeout: int = 15) -> list[dict[str, Any]]:
-    response = requests.get(MONOBANK_CURRENCY_URL, timeout=timeout)
+    try:
+        response = requests.get(MONOBANK_CURRENCY_URL, timeout=timeout)
+    except (requests.Timeout, requests.ConnectionError) as exc:
+        raise RetryableSyncError("Temporary network error while calling Monobank API.") from exc
+
+    if response.status_code == 429 or response.status_code >= 500:
+        raise RetryableSyncError(
+            f"Monobank API temporary failure. Status code: {response.status_code}."
+        )
+
     response.raise_for_status()
     payload = response.json()
     rows: list[dict[str, Any]] = []
