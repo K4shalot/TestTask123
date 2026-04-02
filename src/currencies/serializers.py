@@ -7,7 +7,9 @@ from .models import Currency, RateSnapshot, TrackedCurrency
 class LatestRateFieldsMixin:
     @staticmethod
     def with_latest_rate(queryset):
-        latest_rate_qs = RateSnapshot.objects.filter(currency=OuterRef("currency")).order_by("-source_timestamp", "-id")
+        latest_rate_qs = RateSnapshot.objects.filter(currency=OuterRef("currency")).order_by(
+            "-source_timestamp", "-id"
+        )
         return queryset.annotate(
             latest_rate_buy=Subquery(latest_rate_qs.values("rate_buy")[:1]),
             latest_rate_sell=Subquery(latest_rate_qs.values("rate_sell")[:1]),
@@ -19,9 +21,15 @@ class LatestRateFieldsMixin:
 class TrackedCurrencySerializer(serializers.ModelSerializer):
     code = serializers.IntegerField(source="currency.code", read_only=True)
     code_alpha = serializers.CharField(source="currency.code_alpha", read_only=True)
-    latest_rate_buy = serializers.DecimalField(max_digits=12, decimal_places=4, allow_null=True, read_only=True)
-    latest_rate_sell = serializers.DecimalField(max_digits=12, decimal_places=4, allow_null=True, read_only=True)
-    latest_rate_cross = serializers.DecimalField(max_digits=12, decimal_places=4, allow_null=True, read_only=True)
+    latest_rate_buy = serializers.DecimalField(
+        max_digits=12, decimal_places=4, allow_null=True, read_only=True
+    )
+    latest_rate_sell = serializers.DecimalField(
+        max_digits=12, decimal_places=4, allow_null=True, read_only=True
+    )
+    latest_rate_cross = serializers.DecimalField(
+        max_digits=12, decimal_places=4, allow_null=True, read_only=True
+    )
     latest_rate_time = serializers.DateTimeField(allow_null=True, read_only=True)
 
     class Meta:
@@ -49,7 +57,9 @@ class AddTrackedCurrencySerializer(serializers.Serializer):
 
     def validate_code(self, value: int) -> int:
         if not Currency.objects.filter(code=value).exists():
-            raise serializers.ValidationError("Currency code is not available yet. Sync rates first.")
+            raise serializers.ValidationError(
+                "Currency code is not available yet. Sync rates first."
+            )
         if TrackedCurrency.objects.filter(currency__code=value).exists():
             raise serializers.ValidationError("Currency is already tracked.")
         return value

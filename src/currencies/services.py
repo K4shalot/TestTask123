@@ -65,7 +65,9 @@ def sync_currency_rates() -> int:
                 currency=currency,
                 rate_buy=Decimal(str(row["rate_buy"])) if row["rate_buy"] is not None else None,
                 rate_sell=Decimal(str(row["rate_sell"])) if row["rate_sell"] is not None else None,
-                rate_cross=Decimal(str(row["rate_cross"])) if row["rate_cross"] is not None else None,
+                rate_cross=(
+                    Decimal(str(row["rate_cross"])) if row["rate_cross"] is not None else None
+                ),
                 source_timestamp=row["source_timestamp"],
             )
         )

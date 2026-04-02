@@ -13,5 +13,9 @@ urlpatterns = [
     path("currencies/available/", AvailableCurrenciesView.as_view(), name="available-currencies"),
     path("currencies/tracked/add/", AddTrackedCurrencyView.as_view(), name="add-tracked-currency"),
     path("currencies/<int:code>/history/", CurrencyHistoryView.as_view(), name="currency-history"),
-    path("currencies/tracked/<int:pk>/monitoring/", ToggleMonitoringView.as_view(), name="toggle-monitoring"),
+    path(
+        "currencies/tracked/<int:pk>/monitoring/",
+        ToggleMonitoringView.as_view(),
+        name="toggle-monitoring",
+    ),
 ]

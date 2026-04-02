@@ -39,6 +39,7 @@ staticfiles/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.pre-commit-cache/
 .coverage
 htmlcov/
 

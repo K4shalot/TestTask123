@@ -65,7 +65,9 @@ class CurrencyHistoryView(generics.ListAPIView):
         start = parse_datetime(self.request.query_params.get("start", ""))
         end = parse_datetime(self.request.query_params.get("end", ""))
         if not start or not end:
-            raise ValidationError({"detail": "Both 'start' and 'end' ISO datetime query params are required."})
+            raise ValidationError(
+                {"detail": "Both 'start' and 'end' ISO datetime query params are required."}
+            )
         if start > end:
             raise ValidationError({"detail": "'start' must be less than or equal to 'end'."})
         return RateSnapshot.objects.filter(

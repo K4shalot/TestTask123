@@ -22,7 +22,9 @@ class Command(BaseCommand):
         output_path = Path(options["output"]).resolve()
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        latest_rate_qs = RateSnapshot.objects.filter(currency=OuterRef("currency")).order_by("-source_timestamp", "-id")
+        latest_rate_qs = RateSnapshot.objects.filter(currency=OuterRef("currency")).order_by(
+            "-source_timestamp", "-id"
+        )
         queryset = TrackedCurrency.objects.select_related("currency").annotate(
             latest_rate_buy=Subquery(latest_rate_qs.values("rate_buy")[:1]),
             latest_rate_sell=Subquery(latest_rate_qs.values("rate_sell")[:1]),
@@ -54,7 +56,11 @@ class Command(BaseCommand):
                             tracked.latest_rate_buy,
                             tracked.latest_rate_sell,
                             tracked.latest_rate_cross,
-                            tracked.latest_rate_time.isoformat() if tracked.latest_rate_time else "",
+                            (
+                                tracked.latest_rate_time.isoformat()
+                                if tracked.latest_rate_time
+                                else ""
+                            ),
                         ]
                     )
                     rows_written += 1

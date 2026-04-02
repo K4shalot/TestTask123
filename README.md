@@ -27,6 +27,12 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+Optional (recommended) dev tooling:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
 2. Create `.env` from the example file:
 
 ```bash
@@ -118,6 +124,27 @@ python manage.py sync_currency_rates
 python manage.py export_currency_rates --output currency_rates.csv
 ```
 
+## Lint and Format
+
+Run linting:
+
+```bash
+ruff check .
+```
+
+Format code:
+
+```bash
+black .
+```
+
+Set up pre-commit hooks:
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
+
 ## Periodic Update
 
 - Celery Beat runs `currencies.tasks.sync_currency_rates` every 10 minutes.
@@ -128,10 +155,14 @@ python manage.py export_currency_rates --output currency_rates.csv
 ```text
 .
 ├── .env.example
+├── .dockerignore
 ├── .gitignore
+├── .pre-commit-config.yaml
 ├── docker-compose.yml
 ├── Dockerfile
+├── pyproject.toml
 ├── requirements.txt
+├── requirements-dev.txt
 └── src
     ├── config
     ├── currencies
